@@ -17,46 +17,56 @@ This is a API project for insert, read, update, and delete Students and Events u
 - ### Student Properties
   - ```java
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Integer studentId;
     ```
   - ```java
-    @NotEmpty
-    private String title;
+    @Pattern(regexp = "^[A-Z][a-z]*$")
+    private String firstName;
     ```
   - ```java
-    private String description;
+    private String lastName;
     ```
   - ```java
-    @NotEmpty
-    private String location;
-    ```
-  - ```java
-    private Double salary;
-    ```
-  - ```java
-    @NotEmpty
-    private String companyName;
-    ```
-  - ```java
-    private String employerName;
+    @Min(value = 18)
+    @Max(value = 25)
+    private Integer age;
     ```
   - ```java
     @Enumerated(value = EnumType.STRING)
-    private JobType jobType;
+    private Departments department;
+    ```
+- ### Event Properties
+  - ```java
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Integer eventId;
     ```
   - ```java
-    private LocalDate appliedDate;
+    private String eventName;
     ```
-- ### JobType Enum
+  - ```java
+    private String locationOfEvent;
+    ```
+  - ```java
+    @Pattern(regexp = "[0-9]{4}-[0-9]{2}-[0-9]{2}")
+    private String date;
+    ```
+  - ```java
+    @Pattern(regexp = "[0-9]{2}:[0-9]{2}")
+    private String startTime;
+    ```
+  - ```java
+    @Pattern(regexp = "[0-9]{2}:[0-9]{2}")
+    private String endTime;
+    ```
+- ### Departments Enum
   ```java
-  public enum JobType {
-    IT,
-    HR,
-    SALES,
-    MARKETING,
-    ACCOUNTANT,
-    PLANNER
+  public enum Departments {
+    ME,
+    ECE,
+    CIVIL,
+    CSE
   }
   ```
 
@@ -65,88 +75,70 @@ This is a API project for insert, read, update, and delete Students and Events u
 ## Dataflow
 
 - ### End Points / Controllers
-  - _Using CrudRepository Methods_
-    - `@PostMapping(value = "jobs")`
-    - `@GetMapping(value = "jobs")`
-    - `@PutMapping(value = "job")`
-    - `@DeleteMapping(value = "job/{id}")`
-  - _Using Custom Finder Methods_
-    - `@GetMapping(value = "jobs/{salary}")`
-    - `@GetMapping(value = "jobs/salary/greater/{salary}/sort/desc/appliedDate")`
-    - `@GetMapping(value = "/jobs/description/contain/{str}")`
-    - `@GetMapping(value = "jobs/jobType/not/{myType}")`
-  - _Using Native Query Methods_
-    - `@PutMapping(value = "jobs/location/{location}/id/{id}")`
-    - `@DeleteMapping(value = "job/native/{id}")`
-    - `@GetMapping(value = "jobs/title/{title}")`
-    - `@GetMapping(value = "jobs/description/{description}")`
+  - Student
+    - `@PostMapping(value = "/")`
+    - `@PutMapping(value = "/department/{department}/id/{id}")`
+    - `@DeleteMapping(value = "/id/{id}")`
+    - `@GetMapping(value = "/")`
+    - `@GetMapping(value = "/id/{id}")`
+  - Event
+    - `@PostMapping(value = "/")`
+    - `@PutMapping(value = "/")`
+    - `@DeleteMapping(value = "/id/{id}")`
+    - `@GetMapping(value = "/date/{date}")`
 - ### Services
-  - _Using CrudRepository Methods_
+  - Student
     ```java
-    public String addJobsToDb(List<Job> jobs)
-    ```
-    ```java
-    public List<Job> getJobsFromDb()
-    ```
-    ```java
-    public String updateJobById(Job updatedJob)
-    ```
-    ```java
-    public String deleteJobByIdFromDb(Long id)
-    ```
-  - _Using Custom Finder Methods_
-    ```java
-    public List<Job> getJobBySalaryFromDb(Double salary)
-    ```
-    ```java
-    public List<Job> getJobsBySalaryGreaterDescAppliedDate(Double salary)
-    ```
-    ```java
-    public List<Job> getJobsDescriptionHaving(String str)
-    ```
-    ```java
-    public List<Job> getJobsByJobTypeNot(JobType jobType)
-    ```
-  - _Using Native Query Methods_
-    ```java
-    @Transactional
-    public String updateLocationById(String location, Long id)
+    public String addStudentToDb(Student student)
     ```
     ```java
     @Transactional
-    public String deleteByIdNative(Long id)
+    public String updateDepartmentById(Departments department, Integer id)
     ```
     ```java
-    public List<Job> getAllJobsByTitle(String title)
+    public String deleteStudentById(Integer id)
     ```
     ```java
-    public List<Job> getAllJobsByDescription(String description)
+    public List<Student> getAllStudents()
+    ```
+    ```java
+    public Student getStudentById(Integer id)
+    ```
+  - Event
+    ```java
+    public String addEventToDb(Event event)
+    ```
+    ```java
+    public String updateEvent(Event event)
+    ```
+    ```java
+    public String deleteEventById(Integer id)
+    ```
+    ```java
+    public List<Event> getAllEventsByDate(String date)
     ```
 - ### Repository
 
-  ```java
-  @Repository
-  public interface IJobRepository extends CrudRepository<Job, Long> {
+  - Student
 
-    // Custom Finder Methods -->>
-    public List<Job> findBySalary(Double salary);
-    public List<Job> findBySalaryGreaterThanOrderByAppliedDateDesc(Double salary);
-    public List<Job> findByDescriptionContains(String str);
-    public List<Job> findByJobTypeNot(JobType jobType);
+    ```java
+    @Repository
+    public interface IStudentRepository extends CrudRepository<Student, Integer> {
 
-    // Native Custom Query -->>
-    @Modifying
-    @Query(value = "update jobs set location = :location where id = :id", nativeQuery = true)
-    public void updateLocationById(Long id, String location);
-    @Modifying
-    @Query(value = "delete from jobs where id = :id", nativeQuery = true)
-    public void deleteJobById(Long id);
-    @Query(value = "select * from jobs where title = :title", nativeQuery = true)
-    public List<Job> selectJobByTitle(String title);
-    @Query(value = "select * from jobs where description = :description", nativeQuery = true)
-    public List<Job> selectJobByDescription(String description);
-  }
-  ```
+      @Modifying
+      @Query(value = "update students set department = :department where student_id = :id", nativeQuery = true)
+      public void updateDepartmentById(String department, Integer id);
+    }
+    ```
+
+  - Event
+
+    ```java
+    @Repository
+    public interface IEventRepository extends CrudRepository<Event, Integer> {
+      public List<Event> findByDate(String date);
+    }
+    ```
 
 - ### Database
   In this project for datasource I've used **H2 Database**'s in memory type with `SpringDataJPA`.
@@ -161,4 +153,4 @@ This is a API project for insert, read, update, and delete Students and Events u
 
 ## Summary
 
-This API is a `Spring Boot` project that is about managing jobs. We can create, read, update, and delete jobs. In this project request is sent from the client on HTTP in JSON format or from path variable with server side validations and stored in object then response is sent back from the server by JSON format to the client.
+This API is a `Spring Boot` project that is about managing Events. We can create, read, update, and delete Students and Event. In this project request is sent from the client on HTTP in JSON format or from path variable with server side validations and stored in object then response is sent back from the server by JSON format to the client.
